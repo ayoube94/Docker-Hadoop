@@ -1,63 +1,92 @@
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/big-data-europe/Lobby)
+# Install Ubuntu On Windows Using WSL
 
-# Changes
-
-Version 2.0.0 introduces uses wait_for_it script for the cluster startup
-
-# Hadoop Docker
-
-## Supported Hadoop Versions
-See repository branches for supported hadoop versions
-
-## Quick Start
-
-To deploy an example HDFS cluster, run:
+1. Seach Windows PowerShell in Windows search bar, then select Run as administrator
+2. To install WSL in the command prompt, run:
 ```
-  docker-compose up
+  wsl --install
 ```
+3. After WSL has been installed, restart the laptop
+4. Go to Microsoft Store > Search Ubuntu > Download Ubuntu
 
-Run example wordcount job:
+# Configure Ubuntu
+1. After Ubuntu has been installed, open Ubuntu
+2. To install latest updates, run:
 ```
-  make wordcount
+  sudo apt upgrade
 ```
 
-Or deploy in swarm:
+# Setup Local Docker Hadoop Cluster
+## Prerequisites: Docker and Docker Compose
+
+1. In the command prompt, change the current working directory to the location where you want the cloned directory to be
+2. To clone the repository, run:
 ```
-docker stack deploy -c docker-compose-v3.yml hadoop
+  git clone https://github.com/hanashah-01/docker-hadoop-with-python-mapreduce.git
 ```
-
-`docker-compose` creates a docker network that can be found by running `docker network list`, e.g. `dockerhadoop_default`.
-
-Run `docker network inspect` on the network (e.g. `dockerhadoop_default`) to find the IP the hadoop interfaces are published on. Access these interfaces with the following URLs:
-
-* Namenode: http://<dockerhadoop_IP_address>:9870/dfshealth.html#tab-overview
-* History server: http://<dockerhadoop_IP_address>:8188/applicationhistory
-* Datanode: http://<dockerhadoop_IP_address>:9864/
-* Nodemanager: http://<dockerhadoop_IP_address>:8042/node
-* Resource manager: http://<dockerhadoop_IP_address>:8088/
-
-## Configure Environment Variables
-
-The configuration parameters can be specified in the hadoop.env file or as environmental variables for specific services (e.g. namenode, datanode etc.):
+3. Change the directory to where docker-compose.yml is at. In this case, type 'cd docker-hadoop'
+4. To start the docker containers, run:
 ```
-  CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+  docker-compose up -d
+```
+5. To confirm the availability of containers, run:
+```
+  docker ps
 ```
 
-CORE_CONF corresponds to core-site.xml. fs_defaultFS=hdfs://namenode:8020 will be transformed into:
+# Running Python MapReduce function
+
+1. To access the container of Hadoop cluster's namenode, run:
 ```
-  <property><name>fs.defaultFS</name><value>hdfs://namenode:8020</value></property>
+  docker exec -it namenode bash
 ```
-To define dash inside a configuration parameter, use triple underscore, such as YARN_CONF_yarn_log___aggregation___enable=true (yarn-site.xml):
+2. To create folder structure in HDFS to allocate files, run:
 ```
-  <property><name>yarn.log-aggregation-enable</name><value>true</value></property>
+  hdfs dfs -l/
+```
+```
+  hdfs dfs -mkdir -p /user/root
+```
+3. Exit the container. Then, to move the input file, mapper.py and reducer.py to namenode, run:
+```
+  docker cp input namenode:/tmp
+```
+```
+  docker cp mapper.py namenode:/tmp
+```
+```
+  docker cp reducer.py namenode:/tmp
+```
+4. Get in namenode container again. To create the input folder, run:
+```
+  hdfs dfs -mkdir /user/root/input
+```
+5. Change directory to /tmp
+6. To move the input files to the input folder, run:
+```
+  hdfs dfs -put input/* /user/root/input
+```
+7. Find the path to the JAR file. To locate the hadoop string library JAR file, run:
+```
+  find / -name 'hadoop-streaming*.jar'
+```
+8. To run the MapReduce program, run:
+```
+  hadoop jar /opt/hadoop-3.2.1/share/hadoop/tools/lib/hadoop-streaming-3.2.1.jar -files mapper.py -mapper mapper.py -file reducer.py -reducer reducer.py -input /user/root/input/* -output /user/root/output
 ```
 
-The available configurations are:
-* /etc/hadoop/core-site.xml CORE_CONF
-* /etc/hadoop/hdfs-site.xml HDFS_CONF
-* /etc/hadoop/yarn-site.xml YARN_CONF
-* /etc/hadoop/httpfs-site.xml HTTPFS_CONF
-* /etc/hadoop/kms-site.xml KMS_CONF
-* /etc/hadoop/mapred-site.xml  MAPRED_CONF
+# Python Configuration In Container
+## This must be done to run the MapReduce Python program
 
-If you need to extend some other configuration file, refer to base/entrypoint.sh bash script.
+1. To install python in each container, run:
+```
+  docker exec -it namenode bash -c "apt update && apt install python -y"
+```
+```
+  docker exec -it datanode bash -c "apt update && apt install python -y"
+```
+```
+  docker exec -it resourcemanager bash -c "apt update && apt install python -y"
+```
+```
+  docker exec -it nodemanager bash -c "apt update && apt install python -y"
+```
