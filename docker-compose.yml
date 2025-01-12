@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3"
 services:
 
   namenode:
@@ -8,13 +8,15 @@ services:
     networks:
       - hadoop
     ports: 
-      - "9870:9870" #Web Interface NameNode HDFS
-      - "8889:8889" #Jupyter Notebook
-      - "10002:10002" #WebUI HiveServer2
+      - "9870:9870" # Web Interface NameNode HDFS
+      - "8889:8889" # Jupyter Notebook
+      - "10002:10002" # WebUI HiveServer2
     tty: true
     volumes: 
-      - ./notebooks:/media/notebooks #../notebooks Es el directorio local que es compartido con el contenedor
-  
+      - ./notebooks:/media/notebooks # ../notebooks Es el directorio local que es compartido con el contenedor
+    command: >
+      sh -c "jupyter notebook --NotebookApp.allow_origin='*' --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_remote_access=True --notebook-dir=/media/notebooks --ip=0.0.0.0 --port=8889 --no-browser"
+
   yarnmaster:
     image: psroyano/yarnmaster:v1
     container_name: yarnmaster
@@ -22,15 +24,15 @@ services:
     networks:
       - hadoop
     ports:
-      - "8088:8088" #Web Interface Resource Manager
-      - "19888:19888" #MapReduce JobHistory Server
+      - "8088:8088" # Web Interface Resource Manager
+      - "19888:19888" # MapReduce JobHistory Server
     tty: true
   
   datanode:
     image: psroyano/uhadoop:v1
     deploy:
       mode: replicated
-      replicas: 4 #Número de datanodos a desplegar
+      replicas: 4 # Número de datanodos a desplegar
     networks:
       - hadoop
     tty: true
