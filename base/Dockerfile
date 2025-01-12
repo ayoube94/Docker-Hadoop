@@ -1,5 +1,6 @@
 FROM debian:stable
 
+# Instalar dependencias básicas y Jupyter Notebook
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     openjdk-8-jdk \
     net-tools \
@@ -13,9 +14,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 
-RUN curl -O https://dist.apache.org/repos/dist/release/hadoop/common/KEYS
-
-RUN gpg --import KEYS
+# Descargar y configurar Hadoop
+RUN curl -O https://dist.apache.org/repos/dist/release/hadoop/common/KEYS \
+    && gpg --import KEYS
 
 ENV HADOOP_VERSION 3.2.1
 ENV HADOOP_URL https://www.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz
@@ -30,7 +31,6 @@ RUN set -x \
 RUN ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop
 
 RUN mkdir /opt/hadoop-$HADOOP_VERSION/logs
-
 RUN mkdir /hadoop-data
 
 ENV HADOOP_HOME=/opt/hadoop-$HADOOP_VERSION
@@ -39,8 +39,16 @@ ENV MULTIHOMED_NETWORK=1
 ENV USER=root
 ENV PATH $HADOOP_HOME/bin/:$PATH
 
-ADD entrypoint.sh /entrypoint.sh
+# Instalar Jupyter Notebook
+RUN python3 -m pip install --upgrade pip \
+    && pip3 install notebook
 
+# Crear un directorio para notebooks
+RUN mkdir -p /media/notebooks
+
+# Añadir script de entrada
+ADD entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
+
