@@ -1,76 +1,39 @@
-version: "3"
-
+version: "3.8"
 services:
+
   namenode:
-    image: amnrz/hadoop-namenode:v1
+    image: psroyano/namenode-cliente:v1
     container_name: namenode
-    restart: always
+    hostname: namenode
+    networks:
+      - hadoop
+    ports: 
+      - "9870:9870" #Web Interface NameNode HDFS
+      - "8889:8889" #Jupyter Notebook
+      - "10002:10002" #WebUI HiveServer2
+    tty: true
+    volumes: 
+      - ./notebooks:/media/notebooks #../notebooks Es el directorio local que es compartido con el contenedor
+  
+  yarnmaster:
+    image: psroyano/yarnmaster:v1
+    container_name: yarnmaster
+    hostname: yarnmaster
+    networks:
+      - hadoop
     ports:
-      - 9870:9870
-      - 9000:9000
-    volumes:
-      - hadoop_namenode:/hadoop/dfs/name
-    environment:
-      - CLUSTER_NAME=test
-    env_file:
-      - ./hadoop.env
-    build:
-      context: ./namenode
-      dockerfile: Dockerfile
-
+      - "8088:8088" #Web Interface Resource Manager
+      - "19888:19888" #MapReduce JobHistory Server
+    tty: true
+  
   datanode:
-    image: amnrz/hadoop-datanode:v1
-    container_name: datanode
-    restart: always
-    volumes:
-      - hadoop_datanode:/hadoop/dfs/data
-    environment:
-      SERVICE_PRECONDITION: "namenode:9870"
-    env_file:
-      - ./hadoop.env
-    build:
-      context: ./datanode
-      dockerfile: Dockerfile
-
-  resourcemanager:
-    image: amnrz/hadoop-resourcemanager:v1
-    container_name: resourcemanager
-    restart: always
-    environment:
-      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
-    env_file:
-      - ./hadoop.env
-    build:
-      context: ./resourcemanager
-      dockerfile: Dockerfile
-
-  nodemanager1:
-    image: amnrz/hadoop-nodemanager:v1
-    container_name: nodemanager
-    restart: always
-    environment:
-      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
-    env_file:
-      - ./hadoop.env
-    build:
-      context: ./nodemanager
-      dockerfile: Dockerfile
-
-  historyserver:
-    image: amnrz/hadoop-historyserver:v1
-    container_name: historyserver
-    restart: always
-    environment:
-      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
-    volumes:
-      - hadoop_historyserver:/hadoop/yarn/timeline
-    env_file:
-      - ./hadoop.env
-    build:
-      context: ./historyserver
-      dockerfile: Dockerfile
-
-volumes:
-  hadoop_namenode:
-  hadoop_datanode:
-  hadoop_historyserver:
+    image: psroyano/uhadoop:v1
+    deploy:
+      mode: replicated
+      replicas: 4 #Número de datanodos a desplegar
+    networks:
+      - hadoop
+    tty: true
+  
+networks:
+  hadoop:
