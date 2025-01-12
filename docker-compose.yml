@@ -8,7 +8,6 @@ services:
       - hadoop
     ports: 
       - "9870:9870" # Web Interface NameNode HDFS
-      - "8889:8889" # Jupyter Notebook
       - "10002:10002" # WebUI HiveServer2
     tty: true
     volumes: 
