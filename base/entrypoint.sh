@@ -127,12 +127,7 @@ $HADOOP_HOME/sbin/start-yarn.sh
 
 # Iniciar Jupyter Notebook
 echo "Starting Jupyter Notebook..."
-jupyter notebook --NotebookApp.allow_origin='*' \
-                 --NotebookApp.token='' \
-                 --NotebookApp.password='' \
-                 --NotebookApp.allow_remote_access=True \
-                 --notebook-dir=/media/notebooks \
-                 --port=8889 \
+jupyter notebook --NotebookApp.allow_origin='*'
 
 # Ejecutar el comando principal
 exec $@
