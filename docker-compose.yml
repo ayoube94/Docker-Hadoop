@@ -14,7 +14,7 @@ services:
     volumes: 
       - ./notebooks:/media/notebooks # ../notebooks Es el directorio local que es compartido con el contenedor
     command: >
-      sh -c "jupyter notebook --NotebookApp.allow_origin='*' --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_remote_access=True --notebook-dir=/media/notebooks --ip=0.0.0.0 --port=8889 --no-browser"
+      sh -c "jupyter notebook --NotebookApp.allow_origin='*' --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_remote_access=True --notebook-dir=/media/notebooks --port=8889"
 
   yarnmaster:
     image: psroyano/yarnmaster:v1
