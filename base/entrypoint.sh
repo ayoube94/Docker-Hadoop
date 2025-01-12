@@ -132,9 +132,7 @@ jupyter notebook --NotebookApp.allow_origin='*' \
                  --NotebookApp.password='' \
                  --NotebookApp.allow_remote_access=True \
                  --notebook-dir=/media/notebooks \
-                 --ip=0.0.0.0 \
                  --port=8889 \
-                 --no-browser
 
 # Ejecutar el comando principal
 exec $@
