@@ -1,5 +1,4 @@
 services:
-
   namenode:
     image: psroyano/namenode-cliente:v1
     container_name: namenode
@@ -8,14 +7,15 @@ services:
       - hadoop
     ports: 
       - "9870:9870" # Web Interface NameNode HDFS
-      - "8889:8889" #Jupyter Notebook
+      - "8889:8889" # Jupyter Notebook
       - "10002:10002" # WebUI HiveServer2
     tty: true
     volumes: 
-      - ./notebooks:/media/notebooks # ../notebooks Es el directorio local que es compartido con el contenedor
+      - ./notebooks:/media/notebooks # Directorio local compartido con el contenedor
+      - ./entrypoint.sh:/entrypoint.sh # Script de inicialización
+    entrypoint: ["/bin/bash", "/entrypoint.sh"] # Usamos el script de entrada para inicializar
     command: >
-      jupyter notebook --allow-root
-      --NotebookApp.disable_check_xsrf=True
+      jupyter notebook --allow-root --NotebookApp.disable_check_xsrf=True --notebook-dir=/media/notebooks --ip=0.0.0.0 --port=8889 --no-browser
 
   yarnmaster:
     image: psroyano/yarnmaster:v1
