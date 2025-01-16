@@ -13,6 +13,9 @@ services:
     tty: true
     volumes: 
       - ./notebooks:/media/notebooks # ../notebooks Es el directorio local que es compartido con el contenedor
+    command: >
+      jupyter notebook --allow-root
+      --NotebookApp.disable_check_xsrf=True
 
   yarnmaster:
     image: psroyano/yarnmaster:v1
